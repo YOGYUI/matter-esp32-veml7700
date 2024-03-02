@@ -1,15 +1,15 @@
-#include "illuminationsensor.h"
+#include "lightsensor.h"
 #include "system.h"
 #include "logger.h"
 #include <math.h>
 
-CIlluminanceSensor::CIlluminanceSensor()
+CLightSensor::CLightSensor()
 {
     m_matter_update_by_client_clus_illummeas_attr_measureval = false;
 }
 
 
-bool CIlluminanceSensor::matter_init_endpoint()
+bool CLightSensor::matter_init_endpoint()
 {
     esp_matter::node_t *root = GetSystem()->get_root_node();
     esp_matter::endpoint::light_sensor::config_t config_endpoint;
@@ -22,12 +22,12 @@ bool CIlluminanceSensor::matter_init_endpoint()
     return CDevice::matter_init_endpoint();
 }
 
-bool CIlluminanceSensor::matter_config_attributes()
+bool CLightSensor::matter_config_attributes()
 {
     return true;
 }
 
-bool CIlluminanceSensor::set_min_measured_value(uint16_t value)
+bool CLightSensor::set_min_measured_value(uint16_t value)
 {
     esp_matter::cluster_t *cluster = esp_matter::cluster::get(m_endpoint, chip::app::Clusters::IlluminanceMeasurement::Id);
     if (!cluster) {
@@ -49,7 +49,7 @@ bool CIlluminanceSensor::set_min_measured_value(uint16_t value)
     return true;
 }
 
-bool CIlluminanceSensor::set_max_measured_value(uint16_t value)
+bool CLightSensor::set_max_measured_value(uint16_t value)
 {
     esp_matter::cluster_t *cluster = esp_matter::cluster::get(m_endpoint, chip::app::Clusters::IlluminanceMeasurement::Id);
     if (!cluster) {
@@ -71,7 +71,7 @@ bool CIlluminanceSensor::set_max_measured_value(uint16_t value)
     return true;
 }
 
-void CIlluminanceSensor::matter_on_change_attribute_value(esp_matter::attribute::callback_type_t type, uint32_t cluster_id, uint32_t attribute_id, esp_matter_attr_val_t *value)
+void CLightSensor::matter_on_change_attribute_value(esp_matter::attribute::callback_type_t type, uint32_t cluster_id, uint32_t attribute_id, esp_matter_attr_val_t *value)
 {
     if (cluster_id == chip::app::Clusters::IlluminanceMeasurement::Id) {
         if (attribute_id == chip::app::Clusters::IlluminanceMeasurement::Attributes::MeasuredValue::Id) {
@@ -82,12 +82,12 @@ void CIlluminanceSensor::matter_on_change_attribute_value(esp_matter::attribute:
     }
 }
 
-void CIlluminanceSensor::matter_update_all_attribute_values()
+void CLightSensor::matter_update_all_attribute_values()
 {
     matter_update_clus_illummeas_attr_measureval();
 }
 
-void CIlluminanceSensor::update_measured_value_illuminance(uint16_t value)
+void CLightSensor::update_measured_value_illuminance(uint16_t value)
 {
     m_measured_value_illuminance = (uint16_t)(10000. * log10((double)value) + 1.);
     if (m_measured_value_illuminance != m_measured_value_illuminance_prev) {
@@ -97,7 +97,7 @@ void CIlluminanceSensor::update_measured_value_illuminance(uint16_t value)
     m_measured_value_illuminance_prev = m_measured_value_illuminance;
 }
 
-void CIlluminanceSensor::matter_update_clus_illummeas_attr_measureval(bool force_update/*=false*/)
+void CLightSensor::matter_update_clus_illummeas_attr_measureval(bool force_update/*=false*/)
 {
     esp_matter_attr_val_t target_value = esp_matter_nullable_uint16(m_measured_value_illuminance);
     matter_update_cluster_attribute_common(

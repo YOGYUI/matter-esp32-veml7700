@@ -12,12 +12,12 @@
 #include "logger.h"
 #include "definition.h"
 #include "veml7700.h"
-#include "illuminationsensor.h"
+#include "lightsensor.h"
 #include <math.h>
 
 #define TASK_TIMER_STACK_DEPTH  3072
 #define TASK_TIMER_PRIORITY     5
-#define MEASURE_PERIOD_US       10000000
+#define MEASURE_PERIOD_US       1 * 1000 * 1000
 
 CSystem* CSystem::_instance = nullptr;
 bool CSystem::m_default_btn_pressed_long = false;
@@ -101,7 +101,7 @@ bool CSystem::initialize()
     GetLogger(eLogType::Info)->Log("Matter started");
 
     // add airquality sensor endpoint
-    CIlluminanceSensor *sensor = new CIlluminanceSensor();
+    CLightSensor *sensor = new CLightSensor();
     if (sensor && sensor->matter_init_endpoint()) {
         m_device_list.push_back(sensor);
         sensor->set_min_measured_value(1);
@@ -419,11 +419,22 @@ void CSystem::task_timer_function(void *param)
     int64_t current_tick_us;
     int64_t last_tick_us = 0;
     CDevice * dev;
+    float illum_lux = 0.f;
 
     GetLogger(eLogType::Info)->Log("Realtime task (timer) started");
     while (obj->m_keepalive) {
         if (obj->m_initialized) {
-
+            current_tick_us = esp_timer_get_time();
+            if (current_tick_us - last_tick_us >= MEASURE_PERIOD_US) {
+                if (GetVeml7700Ctrl()->read_measurement(&illum_lux)) {
+                    dev = obj->find_device_by_endpoint_id(1);
+                    if (dev) {
+                        dev->update_measured_value_illuminance((uint16_t)illum_lux);
+                    }
+                    GetLogger(eLogType::Info)->Log("Measured illumination from sensor: %g lux", illum_lux);
+                }
+                last_tick_us = current_tick_us;
+            }
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));

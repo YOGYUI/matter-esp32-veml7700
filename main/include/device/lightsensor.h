@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _ILLUMINANCE_SENSOR_H_
-#define _ILLUMINANCE_SENSOR_H_
+#ifndef _LIGHT_SENSOR_H_
+#define _LIGHT_SENSOR_H_
 
 #include "device.h"
 
@@ -8,10 +8,10 @@
 extern "C" {
 #endif
 
-class CIlluminanceSensor : public CDevice
+class CLightSensor : public CDevice
 {
 public:
-    CIlluminanceSensor();
+    CLightSensor();
 
     bool matter_init_endpoint() override;
     bool matter_config_attributes() override;
